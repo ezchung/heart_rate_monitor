@@ -13,6 +13,8 @@ from datetime import datetime
 from .models import HeartRateReading
 from .serializers import HeartRateReadingSerializer
 
+import pdb
+
 class HeartRateViewSet(viewsets.ModelViewSet):
     queryset = HeartRateReading.objects.all()
     serializer_class = HeartRateReadingSerializer
@@ -20,6 +22,7 @@ class HeartRateViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['POST'])
     def upload_csv(self, request):
         file = request.FILES.get('file')
+        print("File: ",file)
         if not file:
             return Response({'error': 'No file uploaded'}, status=400)
 
@@ -32,6 +35,7 @@ class HeartRateViewSet(viewsets.ModelViewSet):
                 next(csv_reader)  # Skip header row
                 for row in csv_reader:
                     timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+                    print(timestamp, ": this is timestap", row);
                     heart_rate = float(row[1])
                     HeartRateReading.objects.create(timestamp=timestamp, heart_rate=heart_rate)
         finally:
