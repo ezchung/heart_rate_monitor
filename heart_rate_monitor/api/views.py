@@ -76,19 +76,6 @@ class HeartRateViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 """
 TODO Here 
-Fix error message 
-  File "/home/ezray/personal_proj/Pine_Clothing_Tech/HR_monitor/heart_rate_monitor/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
-    raise exc
-  File "/home/ezray/personal_proj/Pine_Clothing_Tech/HR_monitor/heart_rate_monitor/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
-    response = handler(request, *args, **kwargs)
-  File "/home/ezray/personal_proj/Pine_Clothing_Tech/HR_monitor/heart_rate_monitor/api/views.py", line 39, in upload_csv
-    heart_rate = float(row[1])
-ValueError: could not convert string to float: ''
-Think the error suggests that there's an empty string in the heart rate column of your CSV file
-in these cases, we need to make it zero so that there is a red dot at that location in the graph
-
-many error messages when uploading. look in terminal
-
 need to create a function that takes the last 5 minutes of csv or last hour and breaks it up
 options will be 5minutes, 15minutes, 30minutes, 1hour, or all together
 Can be displayed using:
