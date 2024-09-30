@@ -36,9 +36,11 @@ class HeartRateViewSet(viewsets.ModelViewSet):
                 for row in csv_reader:
                     timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
                     # print(timestamp, ": this is timestap", row);
-                    heart_rate = float(row[1])
+                    heart_rate = float(row[1]) if row[1] else 0
                     if(not heart_rate): print("heartrate error", heart_rate)
                     HeartRateReading.objects.create(timestamp=timestamp, heart_rate=heart_rate)
+        except Exception as e:
+            return Response({'error': f'Error processing CSV: {str(e)}'}, status=400)
         finally:
             default_storage.delete(path)
 
