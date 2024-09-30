@@ -5,13 +5,12 @@ from rest_framework.decorators import action
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.utils.timezone import make_aware
+from django.utils import timezone
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from .models import HeartRateReading
 from .serializers import HeartRateReadingSerializer
-
-import pdb
 
 class HeartRateViewSet(viewsets.ModelViewSet):
     queryset = HeartRateReading.objects.all()
@@ -20,11 +19,9 @@ class HeartRateViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['POST'])
     def upload_csv(self, request):
         file = request.FILES.get('file')
-        print("File: ",file)
         if not file:
             return Response({'error': 'No file uploaded'}, status=400)
 
-        # Save the file temporarily
         path = default_storage.save('tmp/heart_rate.csv', ContentFile(file.read()))
         
         try:
@@ -33,11 +30,8 @@ class HeartRateViewSet(viewsets.ModelViewSet):
                 next(csv_reader)  # Skip header row
                 for row in csv_reader:
                     naive_timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
-                    aware_timestamp = make_aware(naive_timestamp);
-                    # creates a naive datetime object first, then uses `make_aware` to convert it to a timezone-aware datetime object.
-                    # print(timestamp, ": this is timestap", row);
+                    aware_timestamp = make_aware(naive_timestamp)
                     heart_rate = float(row[1]) if row[1] else 0
-                    if(not heart_rate): print("heartrate error", heart_rate)
                     HeartRateReading.objects.create(timestamp=aware_timestamp, heart_rate=heart_rate)
         except Exception as e:
             return Response({'error': f'Error processing CSV: {str(e)}'}, status=400)
@@ -48,11 +42,36 @@ class HeartRateViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def latest_readings(self, request):
-        limit = int(request.query_params.get('limit', 100))
-        readings = HeartRateReading.objects.order_by('-timestamp')[:limit]
+        time_range = request.query_params.get('time_range', 'full')
+        print(time_range, "is time range###############")
+        
+        if time_range == 'full':
+            readings = HeartRateReading.objects.all().order_by('timestamp')
+            print( "####### READINGS ###############")
+            print(readings)
+            print(HeartRateReading.objects.all(), "ALLLLLLLLLLLLL")
+            timestamps = readings.values_list('timestamp', flat=True)
+            print(timestamps)
+            # print("Timestamps of HeartRateReadings:")
+            # for timestamp in timestamps:
+            #     print(timestamp)
+        else:
+            try:
+                minutes = int(time_range)
+                print( "####### READINGS for Time Of ###############", minutes)
+                time_threshold = timezone.now() - timedelta(minutes=minutes)
+                print("time threshold: ", time_threshold)
+                print(HeartRateReading.objects.filter(timestamp__gte=time_threshold))
+                readings = HeartRateReading.objects.filter(timestamp__gte=time_threshold).order_by('-timestamp')
+                print(readings)
+            except ValueError:
+                return Response({'error': 'Invalid time range'}, status=400)
+
+        limit = int(request.query_params.get('limit', 1000))  # Increased default limit
+        readings = readings[:limit]
+        
         serializer = self.get_serializer(readings, many=True)
         return Response(serializer.data)
-    
 """
 TODO Here 
 Fix error message 
