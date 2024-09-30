@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
-import { Button, Container, Typography, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Button, Container, Typography, Box, Select, MenuItem, FormControl, InputLabel, Paper, List, ListItem, ListItemText } from '@mui/material';
 
 
 const API_URL = 'http://localhost:8080/api/heart-rate/';
@@ -17,12 +17,13 @@ function App() {
   const [file, setFile] = useState(null);
   const [chartDate, setChartDate] = useState('');
   const [timeRange, setTimeRange] = useState('full');
+  const [anomalies, setAnomalies] = useState([]);
 
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
-  }, [timeRange]);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -31,9 +32,10 @@ function App() {
       });
       const processedData = detectAnomalies(response.data);
       setData(processedData);
+      setAnomalies(processedData.filter(reading => reading.isAnomaly));
       if (processedData.length > 0) {
         setChartDate(processedData[0].timestamp.split(' ')[0]); // Extract date part
-        console.log(chartDate);
+        // console.log(chartDate);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -116,27 +118,48 @@ function App() {
           </Select>
         </FormControl>
       </Box>
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="timestamp" 
-            // tickFormatter={formatTimestamp} //this is where the presentation isnt good 
-            interval="preserveStartEnd"
-          />
-          <YAxis />
-          <Tooltip 
-            labelFormatter={(label) => label} // Keep original timestamp format
-            formatter={(value, name) => [value, name === 'heart_rate' ? 'Heart Rate' : name]} />
-          <Legend />
-          <Line 
-            type="monotone" 
-            dataKey="heart_rate" 
-            stroke="#8884d8" 
-            dot={<CustomizedDot />}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <Box display="flex">
+        <Box flexGrow={1}>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="timestamp" 
+                tickFormatter={formatTimestamp}
+                interval="preserveStartEnd"
+              />
+              <YAxis />
+              <Tooltip 
+                labelFormatter={(label) => label}
+                formatter={(value, name) => [value, name === 'heart_rate' ? 'Heart Rate' : name]} />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="heart_rate" 
+                stroke="#8884d8" 
+                dot={<CustomizedDot />}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Box>
+        <Box ml={2} width={300}>
+          <Paper elevation={3} sx={{ p: 2, maxHeight: 400, overflow: 'auto' }}>
+            <Typography variant="h6" gutterBottom>
+              Anomalies
+            </Typography>
+            <List>
+              {anomalies.map((anomaly, index) => (
+                <ListItem key={index}>
+                  <ListItemText 
+                    primary={`Heart Rate: ${anomaly.heart_rate}`}
+                    secondary={`Time: ${anomaly.timestamp}`}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
+        </Box>
+      </Box>
     </Container>
   );
 }
