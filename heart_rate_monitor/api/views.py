@@ -1,12 +1,10 @@
 from django.shortcuts import render
-
-# Create your views here.
-# views.py
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.utils.timezone import make_aware
 import csv
 import io
 from datetime import datetime
@@ -34,11 +32,13 @@ class HeartRateViewSet(viewsets.ModelViewSet):
                 csv_reader = csv.reader(csv_file)
                 next(csv_reader)  # Skip header row
                 for row in csv_reader:
-                    timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+                    naive_timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+                    aware_timestamp = make_aware(naive_timestamp);
+                    # creates a naive datetime object first, then uses `make_aware` to convert it to a timezone-aware datetime object.
                     # print(timestamp, ": this is timestap", row);
                     heart_rate = float(row[1]) if row[1] else 0
                     if(not heart_rate): print("heartrate error", heart_rate)
-                    HeartRateReading.objects.create(timestamp=timestamp, heart_rate=heart_rate)
+                    HeartRateReading.objects.create(timestamp=aware_timestamp, heart_rate=heart_rate)
         except Exception as e:
             return Response({'error': f'Error processing CSV: {str(e)}'}, status=400)
         finally:
