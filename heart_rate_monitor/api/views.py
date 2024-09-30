@@ -46,7 +46,7 @@ class HeartRateViewSet(viewsets.ModelViewSet):
         print(time_range, "is time range###############")
         
         if time_range == 'full':
-            readings = HeartRateReading.objects.all().order_by('timestamp')
+            readings = HeartRateReading.objects.all().order_by('-timestamp')
             print( "####### READINGS ###############")
             print(readings)
             print(HeartRateReading.objects.all(), "ALLLLLLLLLLLLL")
