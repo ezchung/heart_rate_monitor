@@ -169,6 +169,12 @@ function App() {
 }
 
 export default App;
+
+/**
+ * TODO:
+ * Need to make ux changes. Like make graph bigger and more centered
+ */
+
 /**
  * To make it more efficient
  * Frontend Efficiency Improvements:
