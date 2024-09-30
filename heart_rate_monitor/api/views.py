@@ -69,8 +69,8 @@ class HeartRateViewSet(viewsets.ModelViewSet):
             except ValueError:
                 return Response({'error': 'Invalid time range'}, status=400)
 
-        limit = int(request.query_params.get('limit', 1000))
-        readings = readings[:limit]
+        limit = int(request.query_params.get('limit', 100000))
+        # readings = readings[:limit]
         
         serializer = self.get_serializer(readings, many=True)
         return Response(serializer.data)
