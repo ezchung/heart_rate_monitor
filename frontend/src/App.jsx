@@ -89,14 +89,18 @@ function App() {
     setTimeRange(event.target.value);
   };
 
+  const handleTimeClick = () => {
+    fetchData();
+  }
+
   return (
     <Container>
       <Typography variant="h4" gutterBottom>
         Real-Time Heart Rate Monitor
       </Typography>
-      <Typography variant="subtitle1" gutterBottom>
-        Date: {chartDate} {/**need to fix and get the exact date */}
-      </Typography>
+      {/* <Typography variant="subtitle1" gutterBottom>
+        Date: {chartDate} {//need to fix and get the exact date. Right now just showing the first date}
+      </Typography> */}
       <Box mb={2}>
         <input type="file" onChange={handleFileChange} accept=".csv" />
         <Button variant="contained" color="primary" onClick={handleUpload}>
