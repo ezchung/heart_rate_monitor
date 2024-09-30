@@ -97,7 +97,7 @@ function App() {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
             dataKey="timestamp" 
-            tickFormatter={formatTimestamp}
+            // tickFormatter={formatTimestamp} //this is where the presentation isnt good 
             interval="preserveStartEnd"
           />
           <YAxis />
@@ -118,3 +118,9 @@ function App() {
 }
 
 export default App;
+
+/**
+ * TODO
+ * Need to give option of seeing full timescale
+ * Need to change yaxis labels
+ */
