@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
-import { Button, Container, Typography, Box } from '@mui/material';
+import { Button, Container, Typography, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+
 
 const API_URL = 'http://localhost:8080/api/heart-rate/';
 
@@ -15,20 +16,24 @@ function App() {
   const [data, setData] = useState([]);
   const [file, setFile] = useState(null);
   const [chartDate, setChartDate] = useState('');
+  const [timeRange, setTimeRange] = useState('full');
 
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [timeRange]);
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${API_URL}latest_readings/`);
+      const response = await axios.get(`${API_URL}latest_readings/`, {
+        params: { time_range: timeRange }
+      });
       const processedData = detectAnomalies(response.data);
       setData(processedData);
       if (processedData.length > 0) {
         setChartDate(processedData[0].timestamp.split(' ')[0]); // Extract date part
+        console.log(chartDate);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -60,7 +65,7 @@ function App() {
     }
   };
 
-  const detectAnomalies = (data) => {
+  const detectAnomalies = (data) => { //may need to fix
     const threshold = 20;
     return data.map((reading, index) => {
       if (index === 0) return { ...reading, isAnomaly: false };
@@ -78,19 +83,38 @@ function App() {
     return null;
   };
 
+  const handleTimeRangeChange = (event) => {
+    setTimeRange(event.target.value);
+  };
+
   return (
     <Container>
       <Typography variant="h4" gutterBottom>
         Real-Time Heart Rate Monitor
       </Typography>
-      {/* <Typography variant="subtitle1" gutterBottom>
-        Date: {chartDate}
-      </Typography> */}
+      <Typography variant="subtitle1" gutterBottom>
+        Date: {chartDate} {/**need to fix and get the exact date */}
+      </Typography>
       <Box mb={2}>
         <input type="file" onChange={handleFileChange} accept=".csv" />
         <Button variant="contained" color="primary" onClick={handleUpload}>
           Upload CSV
         </Button>
+        <FormControl sx={{ ml: 2, minWidth: 120 }}>
+          <InputLabel id="time-range-label">Time Range</InputLabel>
+          <Select
+            labelId="time-range-label"
+            value={timeRange}
+            onChange={handleTimeRangeChange}
+            label="Time Range"
+          >
+            <MenuItem value="full">Full Data</MenuItem>
+            <MenuItem value="5">Last 5 Minutes</MenuItem>
+            <MenuItem value="10">Last 10 Minutes</MenuItem>
+            <MenuItem value="30">Last 30 Minutes</MenuItem>
+            <MenuItem value="60">Last Hour</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={data}>
