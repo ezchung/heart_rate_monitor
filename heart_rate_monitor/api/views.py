@@ -43,31 +43,33 @@ class HeartRateViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'])
     def latest_readings(self, request):
         time_range = request.query_params.get('time_range', 'full')
-        print(time_range, "is time range###############")
-        
+        print(f"Time range: {time_range}")
+
+        # Get the earliest and latest timestamps in the database
+        earliest_reading = HeartRateReading.objects.earliest('timestamp')
+        latest_reading = HeartRateReading.objects.latest('timestamp')
+        print(f"Earliest reading: {earliest_reading.timestamp}")
+        print(f"Latest reading: {latest_reading.timestamp}")
+
         if time_range == 'full':
             readings = HeartRateReading.objects.all().order_by('timestamp')
-            print( "####### READINGS ###############")
-            print(readings)
-            print(HeartRateReading.objects.all(), "ALLLLLLLLLLLLL")
-            timestamps = readings.values_list('timestamp', flat=True)
-            print(timestamps)
-            # print("Timestamps of HeartRateReadings:")
-            # for timestamp in timestamps:
-            #     print(timestamp)
         else:
             try:
                 minutes = int(time_range)
-                print( "####### READINGS for Time Of ###############", minutes)
-                time_threshold = timezone.now() - timedelta(minutes=minutes)
-                print("time threshold: ", time_threshold)
-                print(HeartRateReading.objects.filter(timestamp__gte=time_threshold))
-                readings = HeartRateReading.objects.filter(timestamp__gte=time_threshold).order_by('-timestamp')
-                print(readings)
+                time_threshold = latest_reading.timestamp - timedelta(minutes=minutes)
+                print(f"Time threshold: {time_threshold}")
+                # what is the range from 11 to 
+                readings = HeartRateReading.objects.filter(timestamp__gte=time_threshold).order_by('timestamp')
+                print(f"Number of readings: {readings.count()}")
+                print(readings, "###################### try try ###################")
+                # Print the first few filtered readings for debugging
+                # for reading in readings:
+                #     print(f"Reading timestamp: {reading.timestamp}, heart rate: {reading.heart_rate}")
+                
             except ValueError:
                 return Response({'error': 'Invalid time range'}, status=400)
 
-        limit = int(request.query_params.get('limit', 1000))  # Increased default limit
+        limit = int(request.query_params.get('limit', 1000))
         readings = readings[:limit]
         
         serializer = self.get_serializer(readings, many=True)
