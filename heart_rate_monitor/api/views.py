@@ -35,8 +35,9 @@ class HeartRateViewSet(viewsets.ModelViewSet):
                 next(csv_reader)  # Skip header row
                 for row in csv_reader:
                     timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
-                    print(timestamp, ": this is timestap", row);
+                    # print(timestamp, ": this is timestap", row);
                     heart_rate = float(row[1])
+                    if(not heart_rate): print("heartrate error", heart_rate)
                     HeartRateReading.objects.create(timestamp=timestamp, heart_rate=heart_rate)
         finally:
             default_storage.delete(path)
@@ -49,3 +50,27 @@ class HeartRateViewSet(viewsets.ModelViewSet):
         readings = HeartRateReading.objects.order_by('-timestamp')[:limit]
         serializer = self.get_serializer(readings, many=True)
         return Response(serializer.data)
+    
+"""
+TODO Here 
+Fix error message 
+  File "/home/ezray/personal_proj/Pine_Clothing_Tech/HR_monitor/heart_rate_monitor/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/ezray/personal_proj/Pine_Clothing_Tech/HR_monitor/heart_rate_monitor/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/ezray/personal_proj/Pine_Clothing_Tech/HR_monitor/heart_rate_monitor/api/views.py", line 39, in upload_csv
+    heart_rate = float(row[1])
+ValueError: could not convert string to float: ''
+Think the error suggests that there's an empty string in the heart rate column of your CSV file
+in these cases, we need to make it zero so that there is a red dot at that location in the graph
+
+many error messages when uploading. look in terminal
+
+need to create a function that takes the last 5 minutes of csv or last hour and breaks it up
+options will be 5minutes, 15minutes, 30minutes, 1hour, or all together
+Can be displayed using:
+5minutes can split into each minute
+30minutes to 5 minutes on grah
+1hr to 10minutes
+all together will be total time divided by 10
+"""
