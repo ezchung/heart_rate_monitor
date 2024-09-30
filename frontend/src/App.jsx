@@ -95,9 +95,9 @@ function App() {
       <Typography variant="h4" gutterBottom>
         Real-Time Heart Rate Monitor
       </Typography>
-      <Typography variant="subtitle1" gutterBottom>
+      {/* <Typography variant="subtitle1" gutterBottom>
         Date: {chartDate}
-      </Typography>
+      </Typography> */}
       <Box mb={2} display="flex" alignItems="center">
         <input type="file" onChange={handleFileChange} accept=".csv" />
         <Button variant="contained" color="primary" onClick={handleUpload} sx={{ mx: 2 }}>
